@@ -1,0 +1,130 @@
+# ==============================================================================
+# Robot App Project - .gitignore
+# Stack: ESP32 (Arduino Core) + React / Vite Web App + Firebase RTDB
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies & Package Managers
+# ------------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+
+# ------------------------------------------------------------------------------
+# Web Production & Build Outputs (Vite / React)
+# ------------------------------------------------------------------------------
+dist/
+dist-ssr/
+*.local
+
+# ------------------------------------------------------------------------------
+# Logs & Debugging
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# Caches & Temporary Files
+# ------------------------------------------------------------------------------
+.cache/
+.vite/
+.eslintcache
+.stylelintcache
+
+# ------------------------------------------------------------------------------
+# Environment Variables & Secret Credentials
+# ------------------------------------------------------------------------------
+# Local environment files (Vite / Node)
+.env
+.env.local
+.env.*.local
+*.env
+
+# ESP32 / Arduino / Embedded secrets & private headers
+# (Move WiFi and Firebase credentials out of .ino into one of these ignored headers)
+secrets.h
+credentials.h
+wifi_credentials.h
+config.h
+
+# Firebase Service Accounts & Private Keys
+*serviceAccountKey*.json
+*service-account*.json
+*firebase-adminsdk*.json
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+.firebase/
+
+# Private Certificates & Keys
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+# ------------------------------------------------------------------------------
+# ESP32 & Embedded Build Artifacts (Arduino IDE / PlatformIO / ESP-IDF)
+# ------------------------------------------------------------------------------
+# Arduino IDE build directories and compiled binaries
+build/
+*.bin
+*.hex
+*.elf
+*.eep
+*.o
+*.a
+*.d
+*.map
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+.clangd/
+
+# ESP-IDF
+sdkconfig.old
+
+# ------------------------------------------------------------------------------
+# IDEs & Code Editors
+# ------------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ------------------------------------------------------------------------------
+# Operating System Files
+# ------------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
