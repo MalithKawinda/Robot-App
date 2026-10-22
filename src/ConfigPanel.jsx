@@ -44,49 +44,47 @@ export default function ConfigPanel({ cfg, set, act, send, dist, hold, onClose, 
   }
   return (
     <div className="sheet">
-      <div className="bar"><b>⚙ Robot configuration</b><span style={{ color: 'var(--mu)', fontSize: 12 }}>Applies to Auto and Manual</span>
+      <div className="bar"><b>⚙ Robot settings</b><span style={{ color: 'var(--mu)', fontSize: 12 }}>Applies to Auto and Manual</span>
         <button onClick={onClose}>Done</button></div>
       <div className="app">
         <div className="card">
-          <h2>1 · Motor balance (go straight)</h2>
-          <small>Lift the robot off the floor first, then test on the floor. Always lower the stronger motor; 100% is the maximum.</small>
+          <h2>1 · Straight-line balance</h2>
+          <small>Balance motor power so the robot drives straight without pulling to either side.</small>
           <Num {...p} k="lg" label="Left motor power" min={50} max={100} unit="%" />
           <Num {...p} k="rg" label="Right motor power" min={50} max={100} unit="%" />
           <Num {...p} k="tsp" label="Test speed" min={80} max={255} />
           <div className="seg" style={{ marginTop: 10 }}>
-            <button className="go" onClick={() => act('f')}>▶ Drive straight 2 s</button>
+            <button className="go" onClick={() => act('f')}>▶ Test drive (2s)</button>
           </div>
           <div className="seg" style={{ marginTop: 8 }}>
-            <button onClick={() => veer('left')}>↶ It veered LEFT</button>
-            <button onClick={() => veer('right')}>It veered RIGHT ↷</button>
+            <button onClick={() => veer('left')}>↶ Drifts LEFT</button>
+            <button onClick={() => veer('right')}>Drifts RIGHT ↷</button>
           </div>
-          <small>Each tap trims the opposite motor by 1%. Repeat test → tap → test until the path is straight.</small>
+          <small>Tap if the robot drifts until it drives straight.</small>
         </div>
 
         <div className="card">
-          <h2>2 · Motor start-up (dead-band)</h2>
-          <small>Lowest PWM that makes each wheel actually move. Raise it until the wheel just starts turning at slow speeds.</small>
-          <Num {...p} k="lmin" label="Left min PWM" min={0} max={200} />
-          <Num {...p} k="rmin" label="Right min PWM" min={0} max={200} />
+          <h2>2 · Minimum motor power</h2>
+          <small>Lowest power required for the wheels to start rolling smoothly.</small>
+          <Num {...p} k="lmin" label="Left minimum power" min={0} max={200} />
+          <Num {...p} k="rmin" label="Right minimum power" min={0} max={200} />
         </div>
 
         <div className="card">
           <h2>3 · Turn calibration</h2>
-          <Num {...p} k="tspd" label="Spin-test / check speed" min={60} max={255} hint="Used by the spin test, steering check and correction check." />
+          <Num {...p} k="tspd" label="Turn speed" min={60} max={255} hint="Speed used during turns and test maneuvers." />
           <div className="seg" style={{ margin: '10px 0' }}>
-            <button onClick={() => act('s')}>↻ Spin test (1 s)</button>
+            <button onClick={() => act('s')}>↻ Spin test (1s)</button>
             <input className="inp" type="number" placeholder="degrees turned" value={deg} onChange={(e) => setDeg(e.target.value)} />
-            <button className="go" onClick={applySpin}>Calculate</button>
+            <button className="go" onClick={applySpin}>Auto-adjust</button>
           </div>
-          <small>Run the spin test, estimate the angle it turned (e.g. ¾ turn = 270), enter it and press Calculate. Then fine-tune below.</small>
-          <small>Calculate sets both motors to ±turn speed and the times for 90° and 180°. Then fine-tune each motor below.</small>
-          <small>Each turn sets the LEFT and RIGHT motor separately: negative = backwards, opposite signs = spin on the spot, one motor at 0 = swing around the other wheel. Different values compensate for unequal motors.</small>
+          <small>Run a spin test to auto-estimate turn times, or manually adjust them below.</small>
 
           <h2 style={{ marginTop: 16 }}>90° left turn</h2>
           <Num {...p} k="l90l" label="Left motor" min={-255} max={255} />
           <Num {...p} k="l90r" label="Right motor" min={-255} max={255} />
           <Num {...p} k="l90t" label="Duration" min={20} max={1500} step={5} unit=" ms" />
-          <Num {...p} k="advl" label="Forward before this turn" min={0} max={1500} step={5} unit=" ms" hint="0 = no forward move before this turn." />
+          <Num {...p} k="advl" label="Roll forward before turn" min={0} max={1500} step={5} unit=" ms" hint="Short forward move before turning." />
           <div className="seg" style={{ marginTop: 8 }}>
             <button onClick={() => act('l')}>Test 90° ↰</button>
             <button onClick={() => act('v')}>Forward only</button>
@@ -96,7 +94,7 @@ export default function ConfigPanel({ cfg, set, act, send, dist, hold, onClose, 
           <Num {...p} k="r90l" label="Left motor" min={-255} max={255} />
           <Num {...p} k="r90r" label="Right motor" min={-255} max={255} />
           <Num {...p} k="r90t" label="Duration" min={20} max={1500} step={5} unit=" ms" />
-          <Num {...p} k="advr" label="Forward before this turn" min={0} max={1500} step={5} unit=" ms" hint="0 = no forward move before this turn." />
+          <Num {...p} k="advr" label="Roll forward before turn" min={0} max={1500} step={5} unit=" ms" hint="Short forward move before turning." />
           <div className="seg" style={{ marginTop: 8 }}>
             <button onClick={() => act('r')}>Test 90° ↱</button>
             <button onClick={() => act('w')}>Forward only</button>
@@ -104,50 +102,48 @@ export default function ConfigPanel({ cfg, set, act, send, dist, hold, onClose, 
 
           <h2 style={{ marginTop: 16 }}>180° U-turn</h2>
           <div className="seg">
-            <button className={!cfg.udir ? 'sel' : ''} onClick={() => setUdir(0)}>Always LEFT</button>
-            <button className={cfg.udir ? 'sel' : ''} onClick={() => setUdir(1)}>Always RIGHT</button>
+            <button className={!cfg.udir ? 'sel' : ''} onClick={() => setUdir(0)}>Turn LEFT</button>
+            <button className={cfg.udir ? 'sel' : ''} onClick={() => setUdir(1)}>Turn RIGHT</button>
           </div>
           <Num {...p} k="ul" label="Left motor" min={-255} max={255} />
           <Num {...p} k="ur" label="Right motor" min={-255} max={255} />
           <Num {...p} k="ut" label="Duration" min={20} max={3000} step={5} unit=" ms" />
-          <Num {...p} k="advu" label="Forward before U-turn" min={0} max={1500} step={5} unit=" ms" hint="0 = no forward move before the U-turn." />
+          <Num {...p} k="advu" label="Roll forward before U-turn" min={0} max={1500} step={5} unit=" ms" hint="Short forward move before U-turn." />
           <div className="seg" style={{ marginTop: 8 }}>
             <button onClick={() => act('u')}>Test 180° {cfg.udir ? '↷' : '↶'}</button>
             <button onClick={() => act('y')}>Forward only</button>
           </div>
-          <small>The test buttons use pure timing, so what you see is what the settings give. Overshoots → shorten the duration; falls short → lengthen it.</small>
+          <small>If the turn overshoots, reduce duration; if it falls short, increase duration.</small>
         </div>
 
         <div className="card">
-          <h2>4 · Junction behaviour</h2>
-          <small>Forward-before-turn is now set separately for each turn in section 3.</small>
-          <button style={{ width: '100%', marginTop: 10 }} onClick={() => set('tcatch', cfg.tcatch ? 0 : 1)}>
-            Line catch after turn: <b>{cfg.tcatch ? 'ON' : 'OFF'}</b>
+          <h2>4 · Junction handling</h2>
+          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('tcatch', cfg.tcatch ? 0 : 1)}>
+            Auto-lock onto line after turn: <b>{cfg.tcatch ? 'ON' : 'OFF'}</b>
           </button>
-          <small>ON: the turn ends exactly when the centre sensor re-finds the line (within the time window below). OFF: pure timed turn.</small>
-          <Num {...p} k="tex" label="Extra catch window" min={0} max={800} step={10} unit=" ms" />
+          <small>Stops turning as soon as the line is detected again.</small>
+          <Num {...p} k="tex" label="Line search timeout" min={0} max={800} step={10} unit=" ms" hint="Extra time allowed to find the line." />
         </div>
 
         <div className="card">
-          <h2>5 · Wiring check</h2>
-          <small>First, in Manual mode press ◀ — the robot must turn LEFT and ▲ must drive forward. If not, fix it here with the motor switches. Then run the steering check.</small>
+          <h2>5 · Direction & sensor check</h2>
+          <small>Ensure the motors and sensors turn the robot in the right direction.</small>
           <div className="seg" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-            <button onClick={() => set('linv', cfg.linv ? 0 : 1)}>Left motor reversed: <b>{cfg.linv ? 'ON' : 'OFF'}</b></button>
-            <button onClick={() => set('rinv', cfg.rinv ? 0 : 1)}>Right motor reversed: <b>{cfg.rinv ? 'ON' : 'OFF'}</b></button>
+            <button onClick={() => set('linv', cfg.linv ? 0 : 1)}>Reverse left motor: <b>{cfg.linv ? 'ON' : 'OFF'}</b></button>
+            <button onClick={() => set('rinv', cfg.rinv ? 0 : 1)}>Reverse right motor: <b>{cfg.rinv ? 'ON' : 'OFF'}</b></button>
           </div>
           <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('flip', cfg.flip ? 0 : 1)}>Swap left/right sensors: <b>{cfg.flip ? 'ON' : 'OFF'}</b></button>
-          <button className="go" style={{ width: '100%', marginTop: 8 }} onClick={() => act('T')}>⟲ Steering check</button>
-          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('sinv', cfg.sinv ? 0 : 1)}>Reverse line-correction direction: <b>{cfg.sinv ? 'ON' : 'OFF'}</b></button>
-          <button className="go" style={{ width: '100%', marginTop: 8 }} onClick={() => act('K')}>✔ Correction check</button>
-          <small>Correction check: the robot knocks itself slightly off the line, lets the line-following correction act, and reverses the correction direction automatically if it steers away from the black line. Put ONLY the centre sensor on the line first.</small>
-          <small>Put ONLY the centre sensor on the line. The robot nudges left and watches which side the line moves to. If it is the wrong side, the sensors are swapped automatically.</small>
+          <button className="go" style={{ width: '100%', marginTop: 8 }} onClick={() => act('T')}>⟲ Test steering direction</button>
+          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('sinv', cfg.sinv ? 0 : 1)}>Invert line correction: <b>{cfg.sinv ? 'ON' : 'OFF'}</b></button>
+          <button className="go" style={{ width: '100%', marginTop: 8 }} onClick={() => act('K')}>✔ Test line correction</button>
+          <small>Place the robot with its centre sensor on the line before testing.</small>
         </div>
 
         <div className="card">
-          <h2>6 · Box servo (pin D32)</h2>
-          <small>Use the slider to move the servo live, find the angle where the box is shut and where it is open, and save them below. Power the servo from its own 5 V supply (shared GND), not the ESP32 pin.</small>
+          <h2>6 · Delivery box lid</h2>
+          <small>Adjust the slider to find and save the open and closed positions.</small>
           <div className="num">
-            <label>Test angle <b>{ang}°</b></label>
+            <label>Test position <b>{ang}°</b></label>
             <div className="fine">
               <button className="mini" onClick={() => moveTo(Math.max(0, ang - 1), true)}>−</button>
               <input type="range" min={0} max={180} value={ang} onChange={(e) => moveTo(+e.target.value, false)} onPointerUp={(e) => moveTo(+e.target.value, true)} />
@@ -158,36 +154,36 @@ export default function ConfigPanel({ cfg, set, act, send, dist, hold, onClose, 
             <button onClick={() => set('sc', ang)}>Save {ang}° as CLOSED</button>
             <button onClick={() => set('so', ang)}>Save {ang}° as OPEN</button>
           </div>
-          <Num {...p} k="sc" label="Closed angle" min={0} max={180} unit="°" />
-          <Num {...p} k="so" label="Open angle" min={0} max={180} unit="°" />
-          <Num {...p} k="sspd" label="Opening speed" min={10} max={720} step={10} unit="°/s" hint="Lower = gentler, no jerk for the contents." />
-          <Num {...p} k="sauto" label="Auto-close after" min={0} max={60} unit=" s" hint="0 = stay open until you press Close." />
+          <Num {...p} k="sc" label="Closed position" min={0} max={180} unit="°" />
+          <Num {...p} k="so" label="Open position" min={0} max={180} unit="°" />
+          <Num {...p} k="sspd" label="Movement speed" min={10} max={720} step={10} unit="°/s" hint="Controls how smoothly the lid moves." />
+          <Num {...p} k="sauto" label="Auto-close delay" min={0} max={60} unit=" s" hint="Seconds before closing automatically (0 = stays open)." />
           <div className="seg" style={{ marginTop: 10 }}>
             <button className="go" onClick={() => act('O')}>📦 Open</button>
             <button onClick={() => act('P')}>Close</button>
-            <button onClick={() => { act('O'); setTimeout(() => act('P'), 2500) }}>Open · 2.5 s · Close</button>
+            <button onClick={() => { act('O'); setTimeout(() => act('P'), 2500) }}>Open (2.5s) then close</button>
           </div>
-          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('boxopen', cfg.boxopen ? 0 : 1)}>Open box at destination: <b>{cfg.boxopen ? 'ON' : 'OFF'}</b></button>
-          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('shold', cfg.shold ? 0 : 1)}>Hold position after moving: <b>{cfg.shold ? 'ON' : 'OFF'}</b></button>
-          <small>OFF releases the servo after it settles (no buzzing, saves battery). Turn ON if the lid pushes the arm back.</small>
+          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('boxopen', cfg.boxopen ? 0 : 1)}>Auto-open on arrival: <b>{cfg.boxopen ? 'ON' : 'OFF'}</b></button>
+          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('shold', cfg.shold ? 0 : 1)}>Hold lid firmly in position: <b>{cfg.shold ? 'ON' : 'OFF'}</b></button>
+          <small>Keep ON if the lid slips after moving.</small>
           <div className="seg" style={{ marginTop: 8 }}>
-            <button onClick={() => set('buzz', cfg.buzz ? 0 : 1)}>Buzzer alarm while open: <b>{cfg.buzz ? 'ON' : 'OFF'}</b></button>
-            <button onClick={() => act('B')}>🔔 Test buzzer</button>
+            <button onClick={() => set('buzz', cfg.buzz ? 0 : 1)}>Sound alert while open: <b>{cfg.buzz ? 'ON' : 'OFF'}</b></button>
+            <button onClick={() => act('B')}>🔔 Test sound</button>
           </div>
-          <small>Buzzer (pin D2) beeps 0.5 s on / 0.5 s off while the box is open and stops when it closes.</small>
-          <Num {...p} k="spmin" label="Pulse at 0°" min={300} max={1200} step={10} unit=" µs" hint="Only change if the servo does not reach its full range (typical 500)." />
-          <Num {...p} k="spmax" label="Pulse at 180°" min={1800} max={2700} step={10} unit=" µs" hint="Typical 2400." />
+          <small>Beeps while the box is open to alert users.</small>
+          <Num {...p} k="spmin" label="Closed limit" min={300} max={1200} step={10} unit=" µs" hint="Fine-tune only if lid cannot close fully." />
+          <Num {...p} k="spmax" label="Open limit" min={1800} max={2700} step={10} unit=" µs" hint="Fine-tune only if lid cannot open fully." />
         </div>
 
         <div className="card">
-          <h2>7 · Front obstacle sensor</h2>
-          <small>When something is closer than the hold distance, the robot stops (Auto and Manual forward). It continues by itself as soon as the path is clear. Reverse and turning in Manual mode still work.</small>
+          <h2>7 · Front obstacle detection</h2>
+          <small>Stops the robot when an object is in front, and resumes once clear.</small>
           <div className="row" style={{ margin: '10px 0' }}>
-            <span>Distance now: <b style={{ color: 'var(--tx)' }}>{dist == null ? '–' : dist >= 400 ? 'clear (> 4 m)' : dist + ' cm'}</b></span>
-            <span style={{ color: hold ? 'var(--er)' : 'var(--ok)' }}>{hold ? '⛔ HOLDING' : '✔ path clear'}</span>
+            <span>Distance ahead: <b style={{ color: 'var(--tx)' }}>{dist == null ? '–' : dist >= 400 ? 'clear' : dist + ' cm'}</b></span>
+            <span style={{ color: hold ? 'var(--er)' : 'var(--ok)' }}>{hold ? '⛔ STOPPED (obstacle)' : '✔ Path clear'}</span>
           </div>
-          <Num {...p} k="obsd" label="Hold distance" min={5} max={60} unit=" cm" hint="Leave room to brake: the robot needs a few cm to stop. 15 cm is a good start. It resumes at this distance + 5 cm." />
-          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('obsen', cfg.obsen ? 0 : 1)}>Obstacle hold: <b>{cfg.obsen ? 'ON' : 'OFF'}</b></button>
+          <Num {...p} k="obsd" label="Stop distance" min={5} max={60} unit=" cm" hint="Distance to stop in front of an obstacle." />
+          <button style={{ width: '100%', marginTop: 8 }} onClick={() => set('obsen', cfg.obsen ? 0 : 1)}>Obstacle auto-stop: <b>{cfg.obsen ? 'ON' : 'OFF'}</b></button>
         </div>
 
         <div className="card">

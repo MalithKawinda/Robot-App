@@ -5,10 +5,10 @@ const COLS = 9, ROWS = 7, C = 46, P = 24
 const px = (g) => P + g * C
 const TOOLS = [['node', '➕ Junction'], ['line', '🔗 Line'], ['name', '📍 Location'], ['robot', '🤖 Robot']]
 const HELP = {
-  node: 'Tap a grid point to add a junction (corner, T, cross or line end). Tap an existing one to delete it.',
-  line: 'Tap one junction, then the next junction along the same row or column to draw / erase the line between them.',
-  name: 'Tap a junction to name it (e.g. "Kitchen"). It becomes a destination. Empty name removes it.',
-  robot: 'Tap the junction the robot is standing on, then choose the direction it faces.',
+  node: 'Tap the grid to add or remove junctions.',
+  line: 'Tap two junctions to connect them with a track line.',
+  name: 'Tap a junction to name it as a destination (e.g. "Kitchen").',
+  robot: 'Tap where the robot currently is and set its facing direction.',
 }
 
 export default function MapEditor({ map, save, onClose, routeNodes = [] }) {
@@ -96,12 +96,12 @@ export default function MapEditor({ map, save, onClose, routeNodes = [] }) {
             )}
             {pts.map(([x, y]) => <circle key={'t' + x + '-' + y} cx={px(x)} cy={px(y)} r={C / 2.3} fill="transparent" onClick={() => tap(x, y)} />)}
           </svg>
-          <small style={{ textAlign: 'center' }}>Top of the grid = North. Draw it like your track seen from above.</small>
+          <small style={{ textAlign: 'center' }}>Top is North. Draw the track as seen from above.</small>
         </div>
         <div className="card">
-          <h2>How the route is found</h2>
-          <small>The map is a graph: junctions are points, lines connect them. From the robot's junction we search outward ring by ring (breadth-first search): all junctions 1 step away, then 2 steps, and so on, remembering where each came from. The first time the destination is reached, we walk the "came from" links backwards to get the route. This gives the fewest junctions – and since every junction costs a stop and a turn, that is almost always the fastest. At each junction the turn is the difference between the heading we arrive with and the heading of the next line (same direction = Straight, +90° = Right, −90° = Left, 180° = U-turn).</small>
-          <button style={{ width: '100%', marginTop: 10 }} onClick={clear}>Delete whole map</button>
+          <h2>Route navigation</h2>
+          <small>The robot automatically calculates the shortest path between junctions to reach the selected destination.</small>
+          <button style={{ width: '100%', marginTop: 10 }} onClick={clear}>Clear map</button>
         </div>
       </div>
     </div>

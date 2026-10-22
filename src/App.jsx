@@ -12,13 +12,13 @@ const stRef = ref(db, 'robot/status')
 const KEYS = { w: 'F', s: 'B', a: 'L', d: 'R', q: 'Q', e: 'E', arrowup: 'F', arrowdown: 'B', arrowleft: 'L', arrowright: 'R' }
 const PAD = [['Q', '↖'], ['F', '▲'], ['E', '↗'], ['L', '◀'], ['S', '■'], ['R', '▶'], null, ['B', '▼'], null]
 const SLIDERS = [
-  { k: 'base', label: 'Base speed', min: 80, max: 255, step: 1, f: 0, auto: true },
-  { k: 'ss', label: 'Slight error: turn strength', min: 5, max: 120, step: 1, f: 0, auto: true },
-  { k: 'sp', label: 'Slight error: turn pulse (ms)', min: 10, max: 200, step: 5, f: 0, auto: true },
-  { k: 'hs', label: 'Big error: turn strength', min: 10, max: 150, step: 1, f: 0, auto: true },
-  { k: 'hp', label: 'Big error: turn pulse (ms)', min: 10, max: 250, step: 5, f: 0, auto: true },
-  { k: 'st', label: 'Settle & re-check time (ms)', min: 10, max: 200, step: 5, f: 0, auto: true },
-  { k: 'speed', label: 'Manual speed', min: 80, max: 255, step: 1, f: 0, auto: false },
+  { k: 'base', label: 'Driving speed', min: 80, max: 255, step: 1, f: 0, auto: true },
+  { k: 'ss', label: 'Gentle curve steering', min: 5, max: 120, step: 1, f: 0, auto: true },
+  { k: 'sp', label: 'Gentle turn pulse (ms)', min: 10, max: 200, step: 5, f: 0, auto: true },
+  { k: 'hs', label: 'Sharp curve steering', min: 10, max: 150, step: 1, f: 0, auto: true },
+  { k: 'hp', label: 'Sharp turn pulse (ms)', min: 10, max: 250, step: 5, f: 0, auto: true },
+  { k: 'st', label: 'Check interval (ms)', min: 10, max: 200, step: 5, f: 0, auto: true },
+  { k: 'speed', label: 'Manual drive speed', min: 80, max: 255, step: 1, f: 0, auto: false },
 ]
 
 export default function App() {
@@ -73,32 +73,32 @@ export default function App() {
     const nv = navRef.current
     if (nv && nv.state === 'running' && v.state === 'IDLE' && Date.now() - nv.t > 2500) cancelRoute('Robot stopped – route cancelled')
     prevState.current = v.state
-    if (v.hold !== undefined && v.hold !== lastHold.current) { log(v.hold ? `⛔ Obstacle ahead (${v.dist} cm) – holding` : 'Path clear – resuming'); lastHold.current = v.hold }
+    if (v.hold !== undefined && v.hold !== lastHold.current) { log(v.hold ? `⛔ Obstacle ahead (${v.dist} cm) – waiting` : 'Path clear – resuming'); lastHold.current = v.hold }
     const ck = v.ck
     if (ck && ck.n !== lastCk.current) {
       if (lastCk.current !== null) {
-        if (ck.res === 1) log('Correction check OK – the robot steers back onto the black line')
-        else if (ck.res === -1) { setCfg((c) => ({ ...c, sinv: v.sinv })); update(cmdRef, { sinv: v.sinv }); log('Correction was steering away from the line – direction reversed. Re-centre the robot and run the check again.') }
-        else if (ck.res === 2) log('Correction check: put ONLY the centre sensor on the line first')
-        else log('Correction check inconclusive – re-centre the robot and try again')
+        if (ck.res === 1) log('Correction check OK – steering aligns with the line')
+        else if (ck.res === -1) { setCfg((c) => ({ ...c, sinv: v.sinv })); update(cmdRef, { sinv: v.sinv }); log('Correction reversed automatically. Re-centre on the line and check again.') }
+        else if (ck.res === 2) log('Correction check: place only the centre sensor on the line first')
+        else log('Check inconclusive – re-centre on the line and try again')
       }
       lastCk.current = ck.n
     }
     const sr = v.steer
     if (sr && sr.n !== lastSteer.current) {
       if (lastSteer.current !== null) {
-        if (sr.res === 1) log('Steering check OK – sensor sides match the motors')
-        else if (sr.res === -1) { setCfg((c) => ({ ...c, flip: v.flip })); update(cmdRef, { flip: v.flip }); log('Sensors were mirrored – left/right swapped automatically. Run the check again to confirm.') }
-        else if (sr.res === 2) log('Steering check: put the centre sensor on the line first')
-        else log('Steering check inconclusive – re-centre the robot on the line and try again')
+        if (sr.res === 1) log('Steering check OK – wheels and sensors match')
+        else if (sr.res === -1) { setCfg((c) => ({ ...c, flip: v.flip })); update(cmdRef, { flip: v.flip }); log('Sensors swapped automatically. Run the check again to confirm.') }
+        else if (sr.res === 2) log('Steering check: place the centre sensor on the line first')
+        else log('Steering check inconclusive – re-centre on the line and try again')
       }
       lastSteer.current = sr.n
     }
     const c = v.cal
     if (c && c.n !== lastCal.current) {
       if (lastCal.current !== null) {
-        if (c.ok) { setBl(v.bl); update(cmdRef, { bl: v.bl }); log(`Sensors calibrated – black reads ${v.bl ? 'LOW (0)' : 'HIGH (1)'}`) }
-        else log('Calibration failed – put ONLY the centre sensor on the black line, the others on white')
+        if (c.ok) { setBl(v.bl); update(cmdRef, { bl: v.bl }); log(`Sensors calibrated (${v.bl ? 'dark line' : 'light line'})`) }
+        else log('Calibration failed – place only centre sensor on the line')
       }
       lastCal.current = c.n
     }
@@ -118,7 +118,7 @@ export default function App() {
     return () => clearInterval(i)
   }, [])
   useEffect(() => { logEnd.current?.scrollTo(0, 1e9) }, [logs])
-  useEffect(() => { if (status.state === 'ERROR') log(`Sensor error – invalid pattern [${status.err}] – robot stopped`) }, [status.state, status.err, log])
+  useEffect(() => { if (status.state === 'ERROR') log('Robot stopped – line lost or sensor reading error') }, [status.state, log])
 
   const drive = useCallback((d) => {
     clearInterval(hold.current)
@@ -221,16 +221,16 @@ export default function App() {
       <div className="card">
         <h2>Live sensors</h2>
         <div className="sens">{[0, 1, 2, 3, 4].map((i) => <div key={i} className={'dot' + (sensors[i] === '1' ? ' b' : '')}>{status.raw ? status.raw[i] : ''}</div>)}</div>
-        <small style={{ textAlign: 'center' }}>Black dot = sensor sees the black line · white dot = floor · digit = raw pin level</small>
+        <small style={{ textAlign: 'center' }}>Black dot = on line · White dot = off line</small>
         <div className="track"><div className="mk" style={{ left: `${50 + (status.pos || 0) / 40}%` }} /></div>
         <div className="seg" style={{ margin: '4px 0 10px' }}>
           <button onClick={() => act('C')}>⟲ Calibrate sensors</button>
-          <button onClick={toggleInv}>Black reads: <b>{bl ? 'LOW (0)' : 'HIGH (1)'}</b></button>
+          <button onClick={toggleInv}>Line type: <b>{bl ? 'Dark line' : 'Light line'}</b></button>
         </div>
         <div className="row">
           <span>State: <b style={{ color: 'var(--tx)' }}>{status.state || '–'}</b></span>
-          <span style={{ color: status.hold ? 'var(--er)' : undefined }}>{status.hold ? '⛔ HOLD ' : ''}Front: <b style={{ color: 'var(--tx)' }}>{status.dist == null ? '–' : status.dist >= 400 ? 'clear' : status.dist + ' cm'}</b></span>
-          <span>Raw pins: <b style={{ color: 'var(--tx)' }}>{status.raw || '–'}</b></span>
+          <span style={{ color: status.hold ? 'var(--er)' : undefined }}>{status.hold ? '⛔ STOPPED ' : ''}Front: <b style={{ color: 'var(--tx)' }}>{status.dist == null ? '–' : status.dist >= 400 ? 'clear' : status.dist + ' cm'}</b></span>
+          <span>Sensors: <b style={{ color: 'var(--tx)' }}>{status.raw || '–'}</b></span>
           <span>Wi-Fi {status.rssi ?? '–'} dBm</span>
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function App() {
           <button onClick={() => act('O')}>📦 Open</button>
           <button onClick={() => act('P')}>Close</button>
         </div>
-        <small>Box is {status.box ? 'OPEN' : 'closed'} · opens automatically at the destination (change in ⚙)</small>
+        <small>Box is {status.box ? 'OPEN' : 'closed'} · Opens automatically on arrival</small>
       </div>
 
       {mode === 'auto' ? (
@@ -256,7 +256,7 @@ export default function App() {
           </div>
           <div className="card">
             <h2>Locations</h2>
-            {!locs.length && <small>No locations yet. Open 🗺 Map, draw the track and name some junctions.</small>}
+            {!locs.length && <small>No destinations set yet. Open 🗺 Map to create destinations.</small>}
             <div className="locs">
               {locs.map(([id, n]) => (
                 <button key={id} disabled={map.robot?.node === id || nav?.state === 'running'} onClick={() => startRoute(id)}>
@@ -282,9 +282,9 @@ export default function App() {
           )}
           <div className="card">
             <h2>Junction</h2>
-            <div className="jt">{j && j.n ? `Junction ${j.n} detected` : 'None detected'}</div>
+            <div className="jt">{j && j.n ? `Junction ${j.n} reached` : 'None detected'}</div>
             <div className="row" style={{ marginBottom: 8 }}>
-              <span>Pattern (L→R): <b>{j?.pattern || '–'}</b></span><span>Choose the next move</span>
+              <span>At junction</span><span>Choose the next move</span>
             </div>
             <div className="seg">
               {[['L', '↰ Left'], ['S', '↑ Straight'], ['R', '↱ Right'], ['U', '↶ U-turn']].map(([a, t]) =>
